@@ -5,7 +5,7 @@ import { installCommand } from "../src/commands/install.js";
 
 const DEFAULT_REGISTRY =
   process.env.SKILL_CLI_REGISTRY ??
-  "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_SKILLS_REPO/main/registry/index.json";
+  "https://raw.githubusercontent.com/ridwan0797/craftend-project/main/registry/index.json";
 
 const program = new Command();
 
@@ -26,6 +26,7 @@ program
   .argument("[skillIds...]", "id skill yang ingin diinstall langsung, mis: docx-writer pdf-tools")
   .option("-r, --registry <url>", "URL atau path lokal ke registry index.json", DEFAULT_REGISTRY)
   .option("-d, --dir <path>", "folder tujuan instalasi", "./skills")
+  .option("-a, --all", "install semua skill di registry tanpa checklist")
   .action(installCommand);
 
 program.parseAsync(process.argv);

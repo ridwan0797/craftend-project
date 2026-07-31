@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -22,6 +23,13 @@ export async function installCommand(skillIds, options) {
     return;
   }
 
+  if (skills.length === 0) {
+    p.outro("Registry kosong, belum ada skill yang bisa diinstall.");
+    return;
+  }
+
+  const installed = await readInstalled(destRoot);
+
   let toInstall;
 
   if (skillIds.length > 0) {
@@ -33,30 +41,41 @@ export async function installCommand(skillIds, options) {
       process.exitCode = 1;
       return;
     }
+  } else if (options.all) {
+    toInstall = skills;
   } else {
-    // Interactive multi-select
+    // Interactive checklist: spasi = centang, a = centang semua, enter = konfirmasi
     const selected = await p.multiselect({
-      message: "Pilih skill yang ingin diinstall (spasi = pilih, enter = konfirmasi):",
+      message: `Centang skill yang mau diinstall ke ${pc.cyan(destRoot)}`,
       options: skills.map((s) => ({
         value: s.id,
-        label: s.name,
+        label: `${s.id}${s.version ? pc.dim(` v${s.version}`) : ""}${
+          installed.has(s.id) ? pc.yellow("  [sudah ada]") : ""
+        }`,
         hint: s.description,
       })),
+      // pre-centang skill yang sudah terinstall supaya sekalian diperbarui
+      initialValues: skills.filter((s) => installed.has(s.id)).map((s) => s.id),
       required: true,
     });
 
     if (p.isCancel(selected)) {
-      p.cancel("Dibatalkan.");
+      p.cancel("Dibatalkan, tidak ada yang diinstall.");
       return;
     }
 
     toInstall = skills.filter((s) => selected.includes(s.id));
   }
 
+  // Skill yang sudah dicentang langsung didownload, tanpa konfirmasi lagi.
+  let ok = 0;
+  const failed = [];
+
   for (const skill of toInstall) {
     const dest = path.join(destRoot, skill.id);
+    const updating = installed.has(skill.id);
     const spinner = p.spinner();
-    spinner.start(`Menginstall ${skill.name} -> ${dest}`);
+    spinner.start(`${updating ? "Memperbarui" : "Mendownload"} ${skill.id}...`);
     try {
       await downloadFolder(
         {
@@ -67,11 +86,31 @@ export async function installCommand(skillIds, options) {
         },
         dest
       );
-      spinner.stop(`${pc.green("✔")} ${skill.name} terinstall di ${dest}`);
+      ok += 1;
+      spinner.stop(
+        `${pc.green("✔")} ${skill.id} ${updating ? "diperbarui" : "terinstall"} di ${pc.dim(dest)}`
+      );
     } catch (err) {
-      spinner.stop(`${pc.red("✘")} Gagal install ${skill.name}: ${err.message}`);
+      failed.push(skill.id);
+      spinner.stop(`${pc.red("✘")} Gagal install ${skill.id}: ${err.message}`);
     }
   }
 
-  p.outro(`Selesai. ${toInstall.length} skill diproses ke folder '${destRoot}'.`);
+  if (failed.length > 0) {
+    process.exitCode = 1;
+    p.outro(`${ok} berhasil, ${failed.length} gagal (${failed.join(", ")}).`);
+    return;
+  }
+
+  p.outro(`${ok} skill tersimpan di '${destRoot}'.`);
+}
+
+/** id skill yang foldernya sudah ada di folder tujuan */
+async function readInstalled(destRoot) {
+  try {
+    const entries = await fs.readdir(destRoot, { withFileTypes: true });
+    return new Set(entries.filter((e) => e.isDirectory()).map((e) => e.name));
+  } catch {
+    return new Set();
+  }
 }

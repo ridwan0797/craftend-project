@@ -9,10 +9,24 @@
       "version": "1.0.0",
       "source": {
         "type": "github",
-        "owner": "YOUR_USERNAME",
-        "repo": "YOUR_SKILLS_REPO",
+        "owner": "ridwan0797",
+        "repo": "craftend-project",
         "ref": "main",
         "path": "skills/example-skill"
+      }
+    },
+    {
+      "id": "example-skill-2",
+      "name": "Example Skill 2",
+      "description": "Contoh skill kedua untuk mencoba multi-select install",
+      "category": "example",
+      "version": "1.0.0",
+      "source": {
+        "type": "github",
+        "owner": "ridwan0797",
+        "repo": "craftend-project",
+        "ref": "main",
+        "path": "skills/example-skill-2"
       }
     }
   ]

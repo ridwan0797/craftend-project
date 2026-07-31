@@ -17,7 +17,8 @@ export async function downloadFolder({ owner, repo, ref = "main", path: repoPath
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
 
-  await fs.mkdir(destDir, { recursive: true });
+  // Folder tujuan sengaja dibuat di downloadDir, setelah listing dari GitHub
+  // sukses — supaya install yang gagal tidak meninggalkan folder kosong.
   await downloadDir(owner, repo, ref, repoPath, destDir, headers);
 }
 
