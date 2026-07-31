@@ -1,0 +1,23 @@
+{
+  "name": "skill-cli",
+  "version": "0.1.0",
+  "description": "CLI untuk browse dan install 'skills' dari registry publik/pribadi",
+  "type": "module",
+  "bin": {
+    "skill-cli": "./bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": ["cli", "skills", "installer", "registry"],
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "commander": "^12.1.0",
+    "picocolors": "^1.0.1"
+  }
+}

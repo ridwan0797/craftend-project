@@ -1,109 +1,128 @@
-# Craftend
+# skill-cli
 
-> A CLI to browse and install AI skills crafted specifically for frontend work.
+CLI untuk browse dan install kumpulan "skill" (folder instruksi/script) dari
+sebuah registry publik, mirip cara kerja `npx create-*` tapi untuk skill kamu
+sendiri.
 
-Craftend is a registry of AI skills (component scaffolding, a11y audits, CSS refactoring, and more) that you can install straight into your project with a single command — no repo cloning, no manual copy-pasting.
+## Cara kerja singkat
 
-```bash
-npx craftend install
-```
+1. Kamu simpan skill-skill kamu di sebuah repo GitHub publik, misal:
+   ```
+   YOUR_SKILLS_REPO/
+     skills/
+       docx-writer/
+         SKILL.md
+       pdf-tools/
+         SKILL.md
+         scripts/...
+     registry/
+       index.json   <- daftar semua skill + lokasinya
+   ```
+2. `registry/index.json` berisi metadata tiap skill (lihat contoh di folder
+   `registry/` project ini).
+3. User install lewat CLI ini, memilih skill mana saja yang mau didownload,
+   lalu skill tersebut di-copy ke folder lokal mereka.
 
----
-
-## Table of contents
-
-- [Usage](#usage)
-- [Commands](#commands)
-- [Skill catalog](#skill-catalog)
-- [How it works](#how-it-works)
-- [Adding a new skill](#adding-a-new-skill)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Usage
-
-No permanent install required:
-
-```bash
-npx craftend list        # see all available skills
-npx craftend install     # pick & install interactively
-```
-
-Or install specific skills directly, skipping the interactive picker:
+## Instalasi (untuk development lokal)
 
 ```bash
-npx craftend install a11y-audit css-refactor
+cd skill-cli
+npm install
+npm link          # supaya perintah `skill-cli` bisa dipanggil global
 ```
 
-Selected skills are downloaded into `./skills` in your project, ready to be used by your AI assistant of choice.
+Setelah dipublish ke npm, orang lain cukup:
 
-## Commands
-
-| Command | Description |
-|---|---|
-| `craftend list` | List all skills available in the registry |
-| `craftend install` | Open an interactive checkbox picker to install skills |
-| `craftend install <id...>` | Install specific skills directly by id |
-| `craftend install --dir <path>` | Set the install destination folder (default: `./skills`) |
-
-## Skill catalog
-
-> ⚠️ The catalog below is still being finalized. This README will be updated once all skills are published to the registry.
-
-| Skill | Description | Status |
-|---|---|---|
-| `component-scaffold` | React/Vue component boilerplate matching your project's conventions | 🚧 |
-| `a11y-audit` | Accessibility audit with concrete WCAG fix suggestions | 🚧 |
-| `css-refactor` | Clean up messy CSS/Tailwind without changing the final output | 🚧 |
-| `figma-to-code` | Convert Figma designs into component code | 🚧 |
-| `perf-audit` | Analyze render performance and bundle size | 🚧 |
-| `storybook-writer` | Generate Storybook stories from existing components | 🚧 |
-
-See the full, up-to-date catalog at [craftend.dev](#) or run `npx craftend list`.
-
-## How it works
-
-1. **Browse the catalog** — `craftend list` shows every skill in the registry.
-2. **Pick & install** — `craftend install` opens an interactive checkbox picker.
-3. **Start using it** — skills are downloaded into `./skills` in your project.
-
-The registry is fetched *live* on every run, so new skills show up for everyone instantly without requiring a CLI update.
-
-## Adding a new skill
-
-1. Create a new folder at `skills/skill-name/` containing a `SKILL.md` plus any supporting files.
-2. Add an entry to `registry/index.json`:
-
-```json
-{
-  "id": "skill-name",
-  "name": "Skill Name",
-  "description": "Short description",
-  "category": "category",
-  "version": "1.0.0",
-  "source": {
-    "type": "github",
-    "owner": "OWNER",
-    "repo": "REPO",
-    "ref": "main",
-    "path": "skills/skill-name"
-  }
-}
+```bash
+npx skill-cli list
+npx skill-cli install
 ```
 
-3. Push to `main`. The skill will automatically appear in `craftend list` for every user.
+(tanpa perlu install apa pun secara permanen)
 
-## Contributing
+## Perintah
 
-New skills and CLI improvements are both welcome:
+### Lihat semua skill yang tersedia
+```bash
+skill-cli list
+skill-cli list --registry https://raw.githubusercontent.com/USERNAME/REPO/main/registry/index.json
+```
 
-1. Fork this repo
-2. Create a branch: `git checkout -b skill/skill-name`
-3. Add your skill following the format above
-4. Open a pull request
+### Install secara interaktif (multi-select)
+```bash
+skill-cli install
+```
+Akan muncul checkbox list, pilih pakai spasi, konfirmasi dengan Enter.
 
-## License
+### Install langsung tanpa interaktif
+```bash
+skill-cli install docx-writer pdf-tools
+```
 
-MIT — free to use for personal or team projects.
+### Ubah folder tujuan instalasi
+```bash
+skill-cli install --dir ./my-skills
+```
+
+## Setel registry default
+
+Supaya user tidak perlu selalu ketik `--registry`, ubah `DEFAULT_REGISTRY`
+di `bin/cli.js`, atau minta mereka set environment variable:
+
+```bash
+export SKILL_CLI_REGISTRY="https://raw.githubusercontent.com/USERNAME/REPO/main/registry/index.json"
+```
+
+## Cara menambah skill baru ke registry kamu
+
+1. Buat folder baru di repo skills kamu, misal `skills/nama-skill/`, isi
+   dengan `SKILL.md` + file pendukung.
+2. Tambahkan entri baru di `registry/index.json`:
+   ```json
+   {
+     "id": "nama-skill",
+     "name": "Nama Skill",
+     "description": "Deskripsi singkat",
+     "category": "kategori",
+     "version": "1.0.0",
+     "source": {
+       "type": "github",
+       "owner": "USERNAME",
+       "repo": "REPO",
+       "ref": "main",
+       "path": "skills/nama-skill"
+     }
+   }
+   ```
+3. Push ke GitHub. Selesai — otomatis muncul di `skill-cli list` untuk semua
+   user (karena CLI selalu fetch registry secara live, bukan bundled).
+
+## Publish CLI ke npm (supaya publik bisa `npx skill-cli`)
+
+```bash
+npm login
+npm publish --access public
+```
+
+Pastikan field `name` di `package.json` belum dipakai orang lain di npm
+registry (cek di https://www.npmjs.com/).
+
+## Catatan teknis
+
+- Download folder dari GitHub memakai GitHub Contents API (tanpa perlu
+  clone/git). Untuk repo publik ini gratis tapi dibatasi 60 request/jam per
+  IP tanpa autentikasi. Kalau kena limit, set `GITHUB_TOKEN` di environment
+  untuk menaikkan limit ke 5000/jam.
+- Saat ini hanya mendukung source bertipe GitHub. Bisa dikembangkan untuk
+  mendukung tipe lain (GitLab, npm package, tarball URL, dst) dengan
+  menambah handler baru di `src/github.js` dan validasi di
+  `src/registry.js`.
+- Semua skill yang dipilih di-download ulang tiap kali `install` dipanggil
+  (tidak ada caching). Cocok untuk versi awal; bisa ditambah nanti kalau
+  perlu offline mode / versioning lokal.
+
+## Roadmap ide lanjutan
+- `skill-cli update` — cek versi skill yang sudah terinstall vs registry.
+- `skill-cli search <keyword>` — filter skill berdasarkan nama/kategori.
+- Dukungan private registry dengan token auth.
+- Lockfile (`skills.lock.json`) supaya instalasi reproducible.
