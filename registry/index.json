@@ -1,0 +1,19 @@
+{
+  "$schema": "https://example.com/skill-registry-schema.json",
+  "skills": [
+    {
+      "id": "example-skill",
+      "name": "Example Skill",
+      "description": "Contoh skill untuk template awal — ganti dengan skill kamu sendiri",
+      "category": "example",
+      "version": "1.0.0",
+      "source": {
+        "type": "github",
+        "owner": "YOUR_USERNAME",
+        "repo": "YOUR_SKILLS_REPO",
+        "ref": "main",
+        "path": "skills/example-skill"
+      }
+    }
+  ]
+}
